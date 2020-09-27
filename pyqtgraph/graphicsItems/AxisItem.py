@@ -4,6 +4,7 @@ from ..python2_3 import asUnicode
 import numpy as np
 from ..Point import Point
 from .. import debug as debug
+import sys
 import weakref
 from .. import functions as fn
 from .. import getConfigOption
@@ -813,7 +814,37 @@ class AxisItem(GraphicsWidget):
         return strings
 
     def logTickStrings(self, values, scale, spacing):
-        return ["%0.1g"%x for x in 10 ** np.array(values).astype(float) * np.array(scale)]
+        estrings = ["%0.1g"%x for x in 10 ** np.array(values).astype(float) * np.array(scale)]
+
+        if sys.version_info < (3, 0):
+            # python 2 does not support unicode strings like that
+            return estrings
+        else:  # python 3+
+            convdict = {"0": "⁰",
+                        "1": "¹",
+                        "2": "²",
+                        "3": "³",
+                        "4": "⁴",
+                        "5": "⁵",
+                        "6": "⁶",
+                        "7": "⁷",
+                        "8": "⁸",
+                        "9": "⁹",
+                        }
+            dstrings = []
+            for e in estrings:
+                if e.count("e"):
+                    v, p = e.split("e")
+                    sign = "⁻" if p[0] == "-" else ""
+                    pot = "".join([convdict[pp] for pp in p[1:].lstrip("0")])
+                    if v == "1":
+                        v = ""
+                    else:
+                        v = v + "·"
+                    dstrings.append(v + "10" + sign + pot)
+                else:
+                    dstrings.append(e)
+            return dstrings
 
     def generateDrawSpecs(self, p):
         """
@@ -1110,23 +1141,26 @@ class AxisItem(GraphicsWidget):
             self._updateHeight()
 
     def wheelEvent(self, ev):
-        if self.linkedView() is None:
+        lv = self.linkedView()
+        if lv is None:
             return
         if self.orientation in ['left', 'right']:
-            self.linkedView().wheelEvent(ev, axis=1)
+            lv.wheelEvent(ev, axis=1)
         else:
-            self.linkedView().wheelEvent(ev, axis=0)
+            lv.wheelEvent(ev, axis=0)
         ev.accept()
 
     def mouseDragEvent(self, event):
-        if self.linkedView() is None:
+        lv = self.linkedView()
+        if lv is None:
             return
         if self.orientation in ['left', 'right']:
-            return self.linkedView().mouseDragEvent(event, axis=1)
+            return lv.mouseDragEvent(event, axis=1)
         else:
-            return self.linkedView().mouseDragEvent(event, axis=0)
+            return lv.mouseDragEvent(event, axis=0)
 
     def mouseClickEvent(self, event):
-        if self.linkedView() is None:
+        lv = self.linkedView()
+        if lv is None:
             return
-        return self.linkedView().mouseClickEvent(event)
+        return lv.mouseClickEvent(event)

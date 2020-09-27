@@ -290,7 +290,7 @@ class PlotItem(GraphicsWidget):
         Place axis items as given by `axisItems`. Initializes non-existing axis items.
         
         ==============  ==========================================================================================
-        **Arguments:**<
+        **Arguments:**
         *axisItems*     Optional dictionary instructing the PlotItem to use pre-constructed items
                         for its axes. The dict keys must be axis names ('left', 'bottom', 'right', 'top')
                         and the values must be instances of AxisItem (or at least compatible with AxisItem).
@@ -645,17 +645,19 @@ class PlotItem(GraphicsWidget):
         
         return item
 
-    def addLegend(self, size=None, offset=(30, 30)):
+    def addLegend(self, offset=(30, 30), **kwargs):
         """
-        Create a new LegendItem and anchor it over the internal ViewBox.
-        Plots will be automatically displayed in the legend if they
-        are created with the 'name' argument.
+        Create a new :class:`~pyqtgraph.LegendItem` and anchor it over the
+        internal ViewBox. Plots will be automatically displayed in the legend
+        if they are created with the 'name' argument.
 
         If a LegendItem has already been created using this method, that
         item will be returned rather than creating a new one.
+
+        Accepts the same arguments as :meth:`~pyqtgraph.LegendItem`.
         """
         if self.legend is None:
-            self.legend = LegendItem(size, offset)
+            self.legend = LegendItem(offset=offset, **kwargs)
             self.legend.setParentItem(self.vb)
         return self.legend
         
